@@ -1,0 +1,34 @@
+name: Create Release Package
+
+on:
+  workflow_dispatch: # Permite executar manualmente
+  push:
+    tags:
+      - 'v*' # Dispara quando um tag de versão é criado, ex: v1.0.0
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # pega todo o histórico (necessário para tags)
+
+      - name: Create ZIP package
+        run: |
+          zip -r release-package.zip . -x '*.git*'
+
+      - name: Upload artifact (opcional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-package
+          path: release-package.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-package.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
