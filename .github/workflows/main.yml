@@ -1,13 +1,10 @@
-name: Create Release Package
+name: Build and Release Package
 
 on:
-  workflow_dispatch: # Permite executar manualmente
-  push:
-    tags:
-      - 'v*'
-       # Dispara quando um tag de versão é criado, ex: v1.0
+  workflow_dispatch:  # executa manualmente no GitHub Actions
+
 permissions:
-  contents: write
+  contents: write  # necessário para criar tag e release
 
 jobs:
   build-and-release:
@@ -17,21 +14,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # pega todo o histórico (necessário para tags)
+          fetch-depth: 0  # garante que histórico e tags são visíveis
 
       - name: Create ZIP package
-        run: |
-          zip -r release-package.zip . -x '*.git*'
+        run: zip -r release-package.zip . -x '*.git*'
 
-      - name: Upload artifact (opcional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-package
-          path: release-package.zip
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push tag
+        id: create_tag
+        run: |
+          TAG="v$(date +'%Y.%m.%d-%H%M')"
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          git tag "$TAG"
+          git push origin "$TAG"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.TAG }}
+          name: "Release ${{ env.TAG }}"
           files: release-package.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
