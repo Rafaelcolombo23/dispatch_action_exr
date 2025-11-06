@@ -1,0 +1,42 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # ou 'master' se for o nome da sua branch principal
+  workflow_dispatch:  # permite executar manualmente também
+
+permissions:
+  contents: read
+  pages: write      # permite publicar no GitHub Pages
+  id-token: write   # necessário para autenticação OIDC
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # (Opcional) Se quiser minificar ou gerar build, insira aqui um step com npm/yarn/etc.
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'  # diretório onde está seu index.html (pode ser 'dist', 'public', etc.)
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
