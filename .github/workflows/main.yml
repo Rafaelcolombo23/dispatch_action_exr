@@ -4,7 +4,10 @@ on:
   workflow_dispatch: # Permite executar manualmente
   push:
     tags:
-      - 'v*' # Dispara quando um tag de versão é criado, ex: v1.0.0
+      - 'v*'
+       # Dispara quando um tag de versão é criado, ex: v1.0
+permissions:
+  contents: write
 
 jobs:
   build-and-release:
